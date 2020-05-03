@@ -29,7 +29,6 @@ object Recap extends App {
    }
 
    val a = new Animal
-   val b =
 
 
 
