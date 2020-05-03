@@ -1,4 +1,4 @@
-package lectures
+package lectures.part1Advanced
 
 object DarkSugars extends App{
   //syntax sugar #1: methods with single param
