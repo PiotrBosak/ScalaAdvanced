@@ -144,13 +144,13 @@ object ThreadCommunication extends App {
     override def run(): Unit = {
       while (true) {
         buffer.synchronized {
-          while (buffer.isEmpty) {
+          if (buffer.isEmpty) {
             println(s"consumer$id is waiting")
             buffer.wait()
           }
-            val x = buffer.dequeue()
-            println(s"I've got $x")
-            buffer.notifyAll()
+          val x = buffer.dequeue()
+          println(s"I've got $x")
+          //buffer.notifyAll()
 
         }
         Thread.sleep(ConsumerRunnable.random.nextInt(1000))
@@ -169,14 +169,14 @@ object ThreadCommunication extends App {
       var i = 0
       while (true) {
         buffer.synchronized {
-          while (buffer.size >= ProducerRunnable.capacity) {
+          if (buffer.size >= ProducerRunnable.capacity) {
             println(s"producer$id is waiting")
             buffer.wait()
           }
 
-            buffer.enqueue(i)
-            buffer.notifyAll()
-            i += 1
+          buffer.enqueue(i)
+          //buffer.notifyAll()
+          i += 1
 
         }
         Thread.sleep(ProducerRunnable.random.nextInt(1000))
@@ -191,12 +191,50 @@ object ThreadCommunication extends App {
 
   def multipleProdCons(): Unit = {
     val buffer = new mutable.Queue[Int]
-    for (i <- 1 to 3 )
+    for (i <- 1 to 3)
       new Thread(new ConsumerRunnable(i, buffer)).start()
     for (i <- 1 to 3)
       new Thread(new ProducerRunnable(i, buffer)).start()
   }
 
-  multipleProdCons()
+  //multipleProdCons()
 
+  case class Friend(name: String) {
+    val lock = new Object
+    var side = "right"
+
+    def bow(other: Friend): Unit = {
+      lock.synchronized {
+        println(s"$this is bowing to $other")
+        other.rise(this)
+      }
+    }
+
+    def switchSide(): Unit =
+      if (side == "right") side = "left"
+      else side = "right"
+
+    def pass(other:Friend): Unit = {
+      while(this.side == other.side) {
+        println("lemme change lane")
+        switchSide()
+        Thread.sleep(1000)
+      }
+    }
+
+    def rise(other: Friend): Unit = {
+      lock.synchronized {
+        println(s"$this has risen to $other")
+      }
+    }
+  }
+
+  def deadLock(): Unit = {
+    val john = Friend("john")
+    val mark = Friend("mark")
+    new Thread(() => john.pass(mark)).start()
+    new Thread(() => mark.pass(john)).start()
+  }
+
+  deadLock()
 }
