@@ -217,6 +217,7 @@ object ThreadCommunication extends App {
     def pass(other:Friend): Unit = {
       while(this.side == other.side) {
         println("lemme change lane")
+        Thread.sleep(500)
         switchSide()
         Thread.sleep(1000)
       }
