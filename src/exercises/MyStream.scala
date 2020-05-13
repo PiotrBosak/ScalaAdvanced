@@ -87,10 +87,28 @@ object MyStream {
 }
 object MyApp2 extends App {
   val odd = MyStream.from[Int](1)(a => a+2).takeAsList(10)
-  odd.foreach(println)
+  //odd.foreach(println)
   val fa = (MyStream.from(1)(_+1)).flatMap(x => new NonEmptyStream(x,new NonEmptyStream(x+1,EmptyStream))).takeAsList(10)
-  fa.foreach(println)
+  //fa.foreach(println)
   val filtered = MyStream.from(1)(_+1).flatMap(x => new NonEmptyStream(x,new NonEmptyStream(x+1,EmptyStream))).filter(_ < 10).take(10)
-  filtered.foreach(println)
+  //filtered.foreach(println)
+  //////
+
+  //1. stream of fibonacci numbers
+  val naturals = MyStream.from(0)(_+1)
+  def fibonacci(first: Int, second: Int): MyStream[Int] =
+    new NonEmptyStream[Int](first,fibonacci(second,first + second))
+
+  def sieve = {
+    def aux (numbers: MyStream[Int]): MyStream[Int] = new NonEmptyStream[Int](numbers.head, aux(numbers.tail.filter(_%numbers.head != 0)))
+    aux(MyStream.from(2)(_+1))
+  }
+  val s = sieve
+  s.take(100).foreach(println)
+  //Some(v).flatMap(f).flatMap(g) = Some(v).flatMap(x => f(x).flatMap(g))
+  //Some(v).flatMap(f).flatMap(g) = Option(f(v)).flatMap(g) = Option(g(f(v))
+
+
+
 }
 
