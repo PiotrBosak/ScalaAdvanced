@@ -1,9 +1,9 @@
 package lectures.concurrency
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Random, Success}
-
+import scala.concurrent.duration._
 object FuturesAndPromises extends App {
   def calculateSthLong: Int = {
     Thread.sleep(2000)
@@ -84,6 +84,38 @@ object FuturesAndPromises extends App {
     case e: Throwable => SocialNetwork.fetchProfile(1)//existing, if not will throw exception, but it will be the second one, instead of first one like in fallbackTo
   }
   val fallBackResult = SocialNetwork.fetchProfile(-1).fallbackTo(SocialNetwork.fetchProfile(1))// if that fails, we return the first one(failed one)
+
+  case class User(name:String)
+  case class Transaction(sender: String, receiver: String, amount: Double, status: String)
+  object BankingApp {
+    val name = "someName"
+    def fetchUser(name: String): Future[User] = Future {
+      Thread.sleep(500)
+      User(name)
+    }
+    def createTransaction(user: User, merchantName:String, amount: Double): Future[Transaction] =Future {
+      //simulate processes
+      Thread.sleep(1000)
+      Transaction(user.name,merchantName,amount,"Success")
+    }
+    def purchase(userName: String, item: String, merchantName: String, cost: Double): String = {
+      //fetch user
+      val statusFuture = for {
+        user <- fetchUser(userName)
+        transaction <- createTransaction(user,merchantName,cost)
+      }yield transaction.status
+      Await.result(statusFuture,2.seconds) //implicit conversion -> pimp my library ????
+
+      //create transaction
+      //wait for the transaction to finish
+    }
+  }
+// promises
+  val promise =  Promise[Int]()// controller over a future
+  val future = promise.future
+  /*
+  1)fulfill a future Immediately with a value
+   */
 
 
 }
